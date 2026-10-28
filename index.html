@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Printing Cost & Pricing Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0b0e17;
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 920px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.3rem;
+            color: #00f3ff;
+            letter-spacing: 2px;
+            text-shadow: 0 0 12px rgba(0, 243, 255, 0.4);
+        }
+
+        p.subtitle {
+            color: #94a3b8;
+            font-size: 1.05rem;
+            margin-top: 6px;
+            letter-spacing: 1px;
+        }
+
+        .card {
+            background-color: #131b2e;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-cyan {
+            border: 1px solid rgba(0, 243, 255, 0.5);
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.15rem;
+            color: #00f3ff;
+            margin-bottom: 18px;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.25);
+            padding-bottom: 10px;
+        }
+
+        .title-green {
+            color: #0ef352;
+            border-bottom-color: rgba(14, 243, 82, 0.25);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            background-color: #090d16;
+            border: 1px solid #00f3ff;
+            border-radius: 6px;
+            padding: 10px 48px 10px 14px;
+            color: #ffffff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.15rem;
+            outline: none;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #38edf8;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+        }
+
+        .input-wrapper .unit {
+            position: absolute;
+            right: 14px;
+            color: #00f3ff;
+            font-weight: bold;
+            font-size: 0.85rem;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .extras-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(0, 243, 255, 0.03);
+            border: 1px dashed rgba(0, 243, 255, 0.25);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .gasto-fijo-row {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 8px;
+        }
+
+        .gasto-fijo-row input {
+            background-color: #090d16;
+            border: 1px solid rgba(0, 243, 255, 0.35);
+            border-radius: 5px;
+            padding: 8px 10px;
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .btn-calcular {
+            width: 100%;
+            background: linear-gradient(135deg, #00f3ff 0%, #00b8c4 100%);
+            border: none;
+            color: #090d16;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            padding: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 12px;
+            letter-spacing: 1px;
+            box-shadow: 0 0 12px rgba(0, 243, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-calcular:hover {
+            background: linear-gradient(135deg, #33f5ff 0%, #00d8e6 100%);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
+        }
+
+        .row-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+            color: #e2e8f0;
+        }
+
+        .val-cyan {
+            color: #00f3ff;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .val-green {
+            color: #0ef352;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .box-costo {
+            background-color: rgba(255, 0, 85, 0.12);
+            border: 1px solid #ff0055;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .box-costo .lbl {
+            color: #ff0055;
+            font-size: 0.85rem;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .box-costo .num {
+            color: #ffffff;
+            font-size: 1.85rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .card-venta {
+            border: 1px solid #0ef352;
+            box-shadow: 0 0 15px rgba(14, 243, 82, 0.1);
+        }
+
+        .box-venta {
+            background-color: rgba(14, 243, 82, 0.12);
+            border: 1px solid #0ef352;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .box-venta .lbl {
+            color: #0ef352;
+            font-size: 0.95rem;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .box-venta .num {
+            color: #ffffff;
+            font-size: 2.3rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(14, 243, 82, 0.5);
+            margin-top: 4px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .config-item {
+            background-color: #090d16;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 10px 12px;
+        }
+
+        .config-item .lbl {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            display: block;
+        }
+
+        .config-item .val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.95rem;
+            color: #ffffff;
+            margin-top: 3px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>3D COST CALCULATOR</h1>
+            <p class="subtitle">Sistema de Cotización basado en estructura Excel</p>
+        </header>
+
+        <div class="grid-2">
+            <!-- Entradas de Datos -->
+            <div class="card card-cyan">
+                <div class="card-title">⚡ DATOS DE LA PIEZA</div>
+                
+                <div class="input-group">
+                    <label for="pesoGramos">Peso del Filamento (Gramos)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="pesoGramos" value="221" min="0" step="1" placeholder="0">
+                        <span class="unit">GRS</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="tiempoHoras">Tiempo de Impresión (Horas)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="tiempoHoras" value="14" min="0" step="0.1" placeholder="0">
+                        <span class="unit">HRS</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="valorTrabajo">Valor Trabajo / Mano de Obra</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="valorTrabajo" value="10000" min="0" step="500" placeholder="0">
+                        <span class="unit">COP</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="porcentajeGanancia">% Margen de Ganancia</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="porcentajeGanancia" value="50" min="0" step="1" placeholder="0">
+                        <span class="unit">%</span>
+                    </div>
+                </div>
+
+                <!-- Gastos Extras / Otros -->
+                <div class="input-group">
+                    <label>Otros Gastos / Insumos Extras</label>
+                    <div class="extras-container">
+                        <div class="gasto-fijo-row">
+                            <input type="text" id="gastoDesc1" placeholder="Descripción">
+                            <input type="number" id="gastoVal1" placeholder="Valor ($)" min="0">
+                        </div>
+                        <div class="gasto-fijo-row">
+                            <input type="text" id="gastoDesc2" placeholder="Descripción">
+                            <input type="number" id="gastoVal2" placeholder="Valor ($)" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-calcular" id="btnCalcular">CALCULAR PRECIO</button>
+            </div>
+
+            <!-- Desglose de Costos de Fabricación -->
+            <div class="card card-cyan">
+                <div class="card-title">📊 DESGLOSE DE COSTOS</div>
+                
+                <div class="row-result">
+                    <span>Peso (<span id="dispGramos">221</span>g x $75):</span>
+                    <strong id="costoPesoVal" class="val-cyan">$ 16.575,00</strong>
+                </div>
+
+                <div class="row-result">
+                    <span>Tiempo Impresión (<span id="dispHoras">14</span>h x $1.600):</span>
+                    <strong id="costoTiempoVal" class="val-cyan">$ 22.400,00</strong>
+                </div>
+
+                <div class="row-result">
+                    <span>Valor Trabajo (Mano de Obra):</span>
+                    <strong id="costoTrabajoVal" class="val-cyan">$ 10.000,00</strong>
+                </div>
+
+                <div class="row-result">
+                    <span>KW / Hora (<span id="dispKWHoras">14</span>h x $150):</span>
+                    <strong id="costoKWVal" class="val-cyan">$ 2.100,00</strong>
+                </div>
+
+                <!-- Extras dinámicos -->
+                <div id="desgloseExtras"></div>
+
+                <div class="box-costo">
+                    <div class="lbl">TOTAL COSTO</div>
+                    <div id="totalCostoVal" class="num">$ 51.075,00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cotización Final / Venta al Cliente -->
+        <div class="card card-venta">
+            <div class="card-title title-green">💰 PRECIO DE VENTA</div>
+            
+            <div class="row-result">
+                <span>Costo Total de Producción:</span>
+                <strong id="dispCostoBase" class="val-cyan">$ 51.075,00</strong>
+            </div>
+
+            <div class="row-result">
+                <span>Ganancia (<span id="dispPorcentaje">50</span>%):</span>
+                <strong id="dispGananciaVal" class="val-green">$ 25.537,50</strong>
+            </div>
+
+            <div class="box-venta">
+                <div class="lbl">PRECIO VENTA FINAL</div>
+                <div id="totalVentaVal" class="num">$ 76.612,50</div>
+            </div>
+        </div>
+
+        <!-- Tarifas Base Configuradas -->
+        <div class="card card-cyan">
+            <div class="card-title">⚙️ TARIFAS BASE CONFIGURADAS</div>
+            <div class="config-grid">
+                <div class="config-item"><span class="lbl">Valor Gramo Filamento</span><span class="val">$ 75,00</span></div>
+                <div class="config-item"><span class="lbl">Depreciación / Mant. (Hr)</span><span class="val">$ 1.600,00</span></div>
+                <div class="config-item"><span class="lbl">KW / Hora</span><span class="val">$ 150,00</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tarifas base por unidad
+        const VALOR_GRAMO = 75;
+        const TARIFA_HORA_PROCESO = 1600; // Depreciación / Mantenimiento por hora
+        const VALOR_KW_HORA = 150;        // Consumo energético por hora
+
+        function formatearCOP(monto) {
+            return '$ ' + monto.toLocaleString('es-CO', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function ejecutarCalculo() {
+            const gramos = parseFloat(document.getElementById('pesoGramos').value) || 0;
+            const horas = parseFloat(document.getElementById('tiempoHoras').value) || 0;
+            const valorTrabajo = parseFloat(document.getElementById('valorTrabajo').value) || 0;
+            const porcentajeMargin = parseFloat(document.getElementById('porcentajeGanancia').value) || 0;
+
+            // Operaciones matemáticas
+            const costoPeso = gramos * VALOR_GRAMO;
+            const costoTiempo = horas * TARIFA_HORA_PROCESO;
+            const costoKW = horas * VALOR_KW_HORA;
+
+            // Otros Gastos
+            let sumaExtras = 0;
+            let htmlExtras = '';
+
+            for (let i = 1; i <= 2; i++) {
+                const desc = document.getElementById('gastoDesc' + i).value.trim();
+                const val = parseFloat(document.getElementById('gastoVal' + i).value) || 0;
+
+                if (val > 0) {
+                    const nombreGasto = desc !== '' ? desc : ('Otro Gasto ' + i);
+                    sumaExtras += val;
+                    htmlExtras += `<div class="row-result"><span>${nombreGasto}:</span><strong class="val-cyan">${formatearCOP(val)}</strong></div>`;
+                }
+            }
+
+            document.getElementById('desgloseExtras').innerHTML = htmlExtras;
+
+            // Total Costo = Peso + Tiempo + Valor Trabajo + KW/Hora + Otros
+            const totalCosto = costoPeso + costoTiempo + valorTrabajo + costoKW + sumaExtras;
+            
+            // Ganancia y Venta
+            const gananciaCalculada = totalCosto * (porcentajeMargin / 100);
+            const precioVenta = totalCosto + gananciaCalculada;
+
+            // Actualización de la Interfaz
+            document.getElementById('dispGramos').innerText = gramos;
+            document.getElementById('dispHoras').innerText = horas;
+            document.getElementById('dispKWHoras').innerText = horas;
+
+            document.getElementById('costoPesoVal').innerText = formatearCOP(costoPeso);
+            document.getElementById('costoTiempoVal').innerText = formatearCOP(costoTiempo);
+            document.getElementById('costoTrabajoVal').innerText = formatearCOP(valorTrabajo);
+            document.getElementById('costoKWVal').innerText = formatearCOP(costoKW);
+            document.getElementById('totalCostoVal').innerText = formatearCOP(totalCosto);
+
+            document.getElementById('dispCostoBase').innerText = formatearCOP(totalCosto);
+            document.getElementById('dispPorcentaje').innerText = porcentajeMargin;
+            document.getElementById('dispGananciaVal').innerText = formatearCOP(gananciaCalculada);
+            document.getElementById('totalVentaVal').innerText = formatearCOP(precioVenta);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnCalcular = document.getElementById('btnCalcular');
+            if (btnCalcular) {
+                btnCalcular.addEventListener('click', ejecutarCalculo);
+            }
+            ejecutarCalculo();
+        });
+    </script>
+</body>
+</html>
